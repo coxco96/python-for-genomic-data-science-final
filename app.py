@@ -68,6 +68,7 @@ def shortest_longest(sl):
     else: # otherwise, return the superlative id and its length
         return id, length
     
+# handle what is printed for -L or -S args depending on which flag (longeset or shortest)    
 def handle_option(option):
     type = 'longest' if option == '-L' else 'shortest'
     id, length = shortest_longest(type)
@@ -82,10 +83,30 @@ def handle_option(option):
     {ids_string}
               """
             )
-            
+
+# create reading frame 1, 2 or 3 for a sequence
+def create_reading_frame(n, seq):
+   
+    # ensure n is 1, 2 or 3 for valid reading frame
+    if n not in [1, 2, 3]:
+        raise ValueError("n for reading frame must == 1, 2 or 3")
     
-
-
+    # initialize list for reading frame
+    rf = []
+    
+    # change n from position to index
+    n -= 1
+    
+    # fill reading frame with 3-nucleotide codons, starting at n position of sequence
+    rf = [seq[i+n:n+i+3] for i in range(0, len(seq), 3)]
+    
+    # if last codon is an empty string, delete it
+    if rf[len(rf)-1] == '':
+        del rf[len(rf)-1]
+    
+    return rf
+    
+    
 
 """
 COMMAND LINE ARGS AND USAGE
@@ -100,7 +121,7 @@ def usage():
         processing commands
        
         <filename>          file to process. must be in FASTA format. must be first arg.
-        -h                  print this help message
+        -h                  print this message
         -n                  returns number of sequences in file
         -i <identifier>     specify a sequence identifier
         -l                  get length of identifier. requires -i <identifier>
@@ -111,7 +132,7 @@ def usage():
     )
     
 # create list of optional (o) and required (a) arguments
-o, a = getopt.getopt(sys.argv[2:], 'nhi:lLS')
+o, a = getopt.getopt(sys.argv[2:], 'hni:lLS')
 
 opts = {}
 seqlen=0
