@@ -86,6 +86,8 @@ def handle_option(option):
 
 # create reading frame 1, 2 or 3 for a sequence
 def create_reading_frame(n, seq):
+    
+    n = int(n)
    
     # ensure n is 1, 2 or 3 for valid reading frame
     if n not in [1, 2, 3]:
@@ -132,7 +134,8 @@ def find_open_reading_frames(rf):
                 
     return orf_locations
     
-print(len(find_open_reading_frames(create_reading_frame(3, seqs['gi|142022655|gb|EQ086233.1|91 marine metagenome JCVI_SCAF_1096627390048 genomic scaffold, whole genome shotgun sequence']))))
+
+# print(len(find_open_reading_frames(create_reading_frame(3, seqs['gi|142022655|gb|EQ086233.1|91 marine metagenome JCVI_SCAF_1096627390048 genomic scaffold, whole genome shotgun sequence']))))
     
     
     
@@ -164,7 +167,7 @@ def usage():
     )
     
 # create list of optional (o) and required (a) arguments
-o, a = getopt.getopt(sys.argv[2:], 'hni:lLS')
+o, a = getopt.getopt(sys.argv[2:], 'hni:lLSo:')
 
 opts = {}
 seqlen=0
@@ -207,4 +210,11 @@ if '-i' in opts.keys():
         # return length of identifier sequence if -l flag included
         if '-l' in opts.keys():
             print(f"Length of this identifier is: {seq_len(id)}.")
+        
+        # return count of open reading frames on specified reading frame if -o flag is included
+        if '-o' in opts.keys():
+            rf = create_reading_frame(opts['-o'], seqs[id])
+            orfs = find_open_reading_frames(rf)
+            print(f"The specified sequence contains {len(orfs)} ORFs on reading frame no. {opts['-o']}")
+            
             
