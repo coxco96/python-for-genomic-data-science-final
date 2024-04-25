@@ -22,8 +22,13 @@ for i in range(len(lines)):
     else:
         seqs[name] = seqs[name] + line
  
+# get number of sequences in file
 def num_seqs():       
     return len(seqs)
+
+# get a specific id's sequence length
+def seq_len(id):
+    return len(seqs[id])
 
 
 
@@ -41,13 +46,15 @@ def usage():
        
         <filename>          file to process. must be in FASTA format. must be first arg.
         -h                  print this help message
-        -l                  returns number of sequences in file
+        -n                  returns number of sequences in file
         -i <identifier>     specify a sequence identifier
+        -l                  get length of identifier. requires -i <identifier>
+        
         """
     )
     
 # create list of optional (o) and required (a) arguments
-o, a = getopt.getopt(sys.argv[2:], 'lhi:')
+o, a = getopt.getopt(sys.argv[2:], 'nhi:l')
 
 opts = {}
 seqlen=0
@@ -64,21 +71,29 @@ if len(sys.argv) < 2:
 if '-h' in opts.keys():
     usage(); sys.exit()
 
-    
-if '-l' in opts.keys():
+if '-n' in opts.keys():
     # ensure a negative value was not specified for length
     print(f"Number of sequences in file: {num_seqs()}.")
     
 if '-i' in opts.keys():
     # check if there is a seq id that starts with this. false by default.
     contains_id = False
+    full_id = ''
     for id in seqs:
         if id.startswith(opts['-i']):
+            id = id
             contains_id = True
             seq_id = opts['-i']
             break
     if contains_id == False:
         print('sequence id not found. try wrapping id in quotes.')
+    else: 
+        # return length of identifier sequence if -l flag included
+        if '-l' in opts.keys():
+            print(f"Length of this identifier is: {seq_len(id)}.")
+            
+
+    
 
 
 
