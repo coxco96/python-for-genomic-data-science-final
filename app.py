@@ -105,6 +105,37 @@ def create_reading_frame(n, seq):
         del rf[len(rf)-1]
     
     return rf
+
+# identify ORFs within a reading frame
+def find_open_reading_frames(rf):
+    
+    # define start and stop codons
+    start_codon = 'ATG'
+    stop_codons = ('TAA','TAG','TGA')
+    
+    # initialize lists of locatoins for start codons
+    start_codon_locations = []
+    stop_codon_locations = []
+    
+    # find them and fill the locations lists
+    for i, codon in enumerate(rf):
+        if codon == start_codon: start_codon_locations.append(i)
+        if codon in stop_codons: stop_codon_locations.append(i)
+    
+    # create list of ORF locations within this reading frame
+    orf_locations = []
+    for i in start_codon_locations:
+        for j in stop_codon_locations:
+            if i < j:
+                orf_loc = [i, j]
+                orf_locations.append(orf_loc)
+                
+    return orf_locations
+    
+print(len(find_open_reading_frames(create_reading_frame(3, seqs['gi|142022655|gb|EQ086233.1|91 marine metagenome JCVI_SCAF_1096627390048 genomic scaffold, whole genome shotgun sequence']))))
+    
+    
+    
     
     
 
@@ -120,13 +151,14 @@ def usage():
         dictionary with all sequences, and offers
         processing commands
        
-        <filename>          file to process. must be in FASTA format. must be first arg.
-        -h                  print this message
-        -n                  returns number of sequences in file
-        -i <identifier>     specify a sequence identifier
-        -l                  get length of identifier. requires -i <identifier>
-        -L                  get id and length of longest sequence in entire file
-        -S                  get id and length of shortest sequence in entire file
+        <filename>              file to process. must be in FASTA format. must be first arg.
+        -h                      print this message
+        -n                      returns number of sequences in file
+        -i <identifier>         specify a sequence identifier
+        -l                      get length of identifier. requires -i <identifier>
+        -L                      get id and length of longest sequence in entire file
+        -S                      get id and length of shortest sequence in entire file
+        -o <readingFrameNumber> prints number of open reading frames in specified sequence identifier for specified reading frame. rquires arg 1, 2 or 3 for reading frame number to analyze. also requires -i <identifier>.
         
         """
     )
