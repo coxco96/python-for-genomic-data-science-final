@@ -1,6 +1,7 @@
 #!usr/bin/python3
 import sys
 import getopt
+import operator
 
 # get and read file
 file_name = sys.argv[1]
@@ -30,6 +31,60 @@ def num_seqs():
 def seq_len(id):
     return len(seqs[id])
 
+# find shortest or longest sequence in entire file
+def shortest_longest(sl):
+    # initialize id and length to return
+    id = ''
+    length = 0
+    # initialize list for tie values
+    ties = []
+    
+    # choose greater or lesser than sign based on shortest or longest
+    if sl == 'shortest':
+        comparison = operator.lt
+    else: # sl == 'longest'
+        comparison = operator.gt
+    
+    for k, seq in seqs.items():
+        # if looking for shortest length, re-initialize length to equal first sequence's length
+        # since no seq will ever be less than 0
+        if sl == 'shortest': 
+            length = len(seq)
+        if comparison(len(seq), length):
+            # update length and id to shortest or longest length and id
+            length = len(seq)
+            id = k
+            ties = []
+            
+        # if already equal...
+        if len(seq) == length:
+            if k not in ties:
+                ties.append(k)
+            ties.append(id)
+
+    # if there are ties, return that list and length    
+    if ties != []:
+        return ties, length
+    else: # otherwise, return the superlative id and its length
+        return id, length
+    
+def handle_option(option):
+    type = 'longest' if option == '-L' else 'shortest'
+    id, length = shortest_longest(type)
+    if isinstance(id, str):
+        print(f"The {type} sequence is {length} characters. Its id begins with {id[:30]}.")
+    if isinstance(id, list):
+        ids_string = '\n    '.join(i[:30] for i in id) # here because f-strings can't use backslash
+        print(f"""
+    There is a {len(id)}-way tie for {type} sequence, at length {length}.
+    The beginnings of each id of {type} seq length are:
+    
+    {ids_string}
+              """
+            )
+            
+    
+
 
 
 """
@@ -49,12 +104,14 @@ def usage():
         -n                  returns number of sequences in file
         -i <identifier>     specify a sequence identifier
         -l                  get length of identifier. requires -i <identifier>
+        -L                  get id and length of longest sequence in entire file
+        -S                  get id and length of shortest sequence in entire file
         
         """
     )
     
 # create list of optional (o) and required (a) arguments
-o, a = getopt.getopt(sys.argv[2:], 'nhi:l')
+o, a = getopt.getopt(sys.argv[2:], 'nhi:lLS')
 
 opts = {}
 seqlen=0
@@ -75,6 +132,12 @@ if '-n' in opts.keys():
     # ensure a negative value was not specified for length
     print(f"Number of sequences in file: {num_seqs()}.")
     
+if '-L' in opts.keys():
+    handle_option('-L')
+    
+if '-S' in opts.keys():
+    handle_option('-S')
+    
 if '-i' in opts.keys():
     # check if there is a seq id that starts with this. false by default.
     contains_id = False
@@ -92,12 +155,3 @@ if '-i' in opts.keys():
         if '-l' in opts.keys():
             print(f"Length of this identifier is: {seq_len(id)}.")
             
-
-    
-
-
-
-    
-
-# close file
-# fasta_string.close()
