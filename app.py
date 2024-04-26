@@ -63,11 +63,10 @@ def shortest_longest(sl, dict):
             ties = []
             
         # if already equal...
-        if len(seq) == length:
+        elif len(seq) == length:
             if k not in ties:
                 ties.append(k)
             ties.append(id)
-
     # if there are ties, return that list and length tied for    
     if ties != []:
         return ties, length
@@ -226,18 +225,40 @@ def shortest_longest_orf(sl, n, id='', id_only=False):
                 if id in winner_ties:
                     print(id[:31])
         elif answer != 'NO': print('invalid response'); 
-
-
         
-        
-        
-            
-
-        
-        
-        
+def repeats(n):
+    n = int(n)
+    # initialize list of substrings extracted from all sequences of length n
+    substr_list = []
     
+    # loop through each sequence to add its substrings to substr_list
+    for id, seq in seqs.items():
+        substr_list += [seq[i:i+n] for i in range(0, len(seq)) if len(seq[i:i+n]) == n]
+
+    # number of times the most frequently repeated string is repeated
+    max_count = substr_list.count(max(substr_list, key=substr_list.count))
+    # what that string is:
+    most_repeated = [item for item in set(substr_list) if substr_list.count(item) == max_count]
+
+    print(f"Among all sequences, the most frequently repeated string of {n} characters is {most_repeated}, occuring {max_count} times.")
     
+    # ask if user wants to check if a specific string is repeated
+    check_string = input("Want to check if a string repeats anywhere in the file? Enter it here. (If not, type 'n'.)")
+    if check_string == 'n':
+        return
+    elif len(check_string) != n:
+        raise ValueError(f"Your string is an invalid length of {len(check_string)}. You entered {n} as the substring length.")
+    else:
+        # get list of all substrings that repeat of length n
+        # repeats_list = [substr for substr in set(substr_list) if substr_list.count(substr) > 1]
+        count = substr_list.count(check_string)
+        print(f"Your string {check_string} occurs {count} times in the file.")
+     
+     
+        
+        
+        
+        
     
     
 
@@ -253,23 +274,24 @@ def usage():
         dictionary with all sequences, and offers
         processing commands
        
-        <filename>              file to process. must be in FASTA format. must be first arg.
-        -h                      print this message
-        -n                      returns number of sequences in file
-        -i <identifier>         specify a sequence identifier
-        -l                      get length of identifier. requires -i <identifier>
-        -L                      get id and length of longest sequence in entire file
-        -S                      get id and length of shortest sequence in entire file
-        -o <readingFrameNumber> prints number of open reading frames in specified sequence identifier for specified reading frame. requires arg 1, 2 or 3 for reading frame number to analyze. also requires -i <identifier>.
-        -r <readingFrameNumber> prints shortest ORF id and length among all sequences in file.
-        -g <readingFrameNumber> prints longest ORF id and length among all sequencse in file.
-        -t <readingFrameNumber> prints shortest ORF in specified identifer. requires -i <identifier>
-        -e <readingFrameNumber> prints longest ORF in specified identifier. requires -i <identifier>
+        <filename>                file to process. must be in FASTA format. must be first arg.
+        -h                        print this message
+        -n                        returns number of sequences in file
+        -i <identifier>           specify a sequence identifier
+        -l                        get length of identifier. requires -i <identifier>
+        -L                        get id and length of longest sequence in entire file
+        -S                        get id and length of shortest sequence in entire file
+        -o <readingFrameNumber>   prints number of open reading frames in specified sequence identifier for specified reading frame. requires arg 1, 2 or 3 for reading frame number to analyze. also requires -i <identifier>.
+        -r <readingFrameNumber>   prints shortest ORF id and length among all sequences in file.
+        -g <readingFrameNumber>   prints longest ORF id and length among all sequencse in file.
+        -t <readingFrameNumber>   prints shortest ORF in specified identifer. requires -i <identifier>
+        -e <readingFrameNumber>   prints longest ORF in specified identifier. requires -i <identifier>
+        -p <repeatedSubstrLength> prints number of repeats of length <repeatedSubstrLength> in all sequences.
         """
     )
     
 # create list of optional and required arguments
-o, a = getopt.getopt(sys.argv[2:], 'hni:lLSo:r:g:t:e:')
+o, a = getopt.getopt(sys.argv[2:], 'hni:lLSo:r:g:t:e:p:')
 
 opts = {}
 seqlen=0
@@ -346,5 +368,8 @@ if '-r' in opts.keys():
     
 if '-g' in opts.keys():
     shortest_longest_orf('longest', opts['-g'])
+    
+if '-p' in opts.keys():
+    repeats(opts['-p'])
             
             
