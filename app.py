@@ -134,9 +134,12 @@ def find_open_reading_frames(rf):
     orf_locations = []
     for i in start_codon_locations:
         for j in stop_codon_locations:
-            if i < j:
+            # start codon must come before stop codon and cannot overlap
+            if i < j and j - i >= 3:
                 orf_loc = [i, j]
                 orf_locations.append(orf_loc)
+                
+   
                 
     return orf_locations
     
@@ -162,7 +165,7 @@ def shortest_longest_orf(sl, n):
             if sl == 'longest': length = 0 # initialize with 0 if looking for longest
             else: length = orfs[0][1] - orfs[0][0] + 1 # initialize with first length if looking for shortest
             for i in orfs:
-                orf_len = i[1] - i[0] + 1
+                orf_len = i[1] - i[0] + 1 + 2 # +1 to make inclusive and +2 for the 2 nucleotides that follow beginning of stop_codon_location
                 if comparison(orf_len, length):
                     length = orf_len
                     seq_ties = [] # empty ties list if something else was longer/shorter
@@ -180,14 +183,14 @@ def shortest_longest_orf(sl, n):
     
     winner_ties = [] # initialize for case of tie
     winner_id = ''
-    if sl == 'longest': winner_lenth = 0 
+    if sl == 'longest': winner_length = 0 
     else: # if shortest, initialize to first length that will be looped through
         winner_length = next(iter(sl_dict.values()))['len']
 
     # loop through longest or shorteset sequence ORFs
     for id, v in sl_dict.items():
         this_length = v['len']
-        if comparison(winner_length, this_length):
+        if comparison(this_length, winner_length):
             winner_length = this_length
             winner_ties = []
             winner_id = id
@@ -313,7 +316,6 @@ if '-r' in opts.keys():
     shortest_longest_orf('shortest', opts['-r'])
     
 if '-g' in opts.keys():
-    # for id, seq in seqs.items():
-    print('longest ORF in entire file')
+    shortest_longest_orf('longest', opts['-g'])
             
             
