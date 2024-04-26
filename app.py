@@ -149,7 +149,7 @@ def find_open_reading_frames(rf):
 
 
 # find shortest or longest ORF in entire file at specified reading frame n
-def shortest_longest_orf(sl, n):
+def shortest_longest_orf(sl, n, id='', id_only=False):
     # get < or > operation depending on 'shortest' or 'longest' as sl
     comparison = comparison_operator(sl)
     # initialize dictionary of shortest or longest sequences for each id
@@ -177,6 +177,24 @@ def shortest_longest_orf(sl, n):
             else: 
                 sl_dict[id] = {'len': orf_len, 'count': len(seq_ties)}
                 # print(f"There was a {len(seq_ties)}-way tie for sequence id {id[:30]} at length {orf_len}")
+    
+    # if id was specified, return shortest or longest ORF for that id only, then break
+    if id != '':
+        if len(id) < 30:
+            raise ValueError('Specified ID must be at least 30 characters long.')
+        matching_keys = [key for key in sl_dict if key.startswith(id)]
+        if not matching_keys:
+            raise KeyError(f"No keys found starting with {id}.")
+        elif len(matching_keys) > 1:
+            raise KeyError(f"Multiple keys found starting with {id}. Try extending the identifier.")
+        else: # identifer found in sl_dict
+            if sl_dict[id]['count'] == 1:
+                print(f"The {sl} ORF for specified key is {sl_dict[id]['len']} characters long.")
+            elif sl_dict[id]['count'] > 1:
+                print(f"The identifier you specified had a {sl_dict[id]['count']}-way tie for {sl} ORF, at {sl_dict[id]['len']} characters long.")
+            
+            # if -e or -t flags were used but neither -r nor -g were used, don't print overall longest/shortest for file
+            if id_only: return 
                 
     # find longest or shortest among ALL sequences, 
     # #using dictionary or shortest or longest of EACH sequence
@@ -245,11 +263,13 @@ def usage():
         -o <readingFrameNumber> prints number of open reading frames in specified sequence identifier for specified reading frame. requires arg 1, 2 or 3 for reading frame number to analyze. also requires -i <identifier>.
         -r <readingFrameNumber> prints shortest ORF id and length among all sequences in file.
         -g <readingFrameNumber> prints longest ORF id and length among all sequencse in file.
+        -t <readingFrameNumber> prints shortest ORF in specified identifer. requires -i <identifier>
+        -e <readingFrameNumber> prints longest ORF in specified identifier. requires -i <identifier>
         """
     )
     
 # create list of optional and required arguments
-o, a = getopt.getopt(sys.argv[2:], 'hni:lLSo:r:g:')
+o, a = getopt.getopt(sys.argv[2:], 'hni:lLSo:r:g:t:e:')
 
 opts = {}
 seqlen=0
@@ -276,7 +296,7 @@ if '-L' in opts.keys():
 if '-S' in opts.keys():
     handle_LS('-S')
     
-if ('-o' in opts.keys() or '-l' in opts.keys()) and '-i' not in opts.keys():
+if ('-o' in opts.keys() or '-l' in opts.keys() or '-t' in opts.keys() or '-e' in opts.keys()) and '-i' not in opts.keys():
     raise ValueError('must include -i <SequenceIdentifier>')
     
 if '-i' in opts.keys():
@@ -301,17 +321,26 @@ if '-i' in opts.keys():
             rf = create_reading_frame(opts['-o'], seqs[id])
             orfs = find_open_reading_frames(rf)
             print(f"The specified sequence contains {len(orfs)} ORFs on reading frame no. {opts['-o']}")
-           
-           
-           
-           
-           
-           
-           
+        
+        # return shortest ORF in identifier
+        if '-t' in opts.keys():  
+            if '-r' not in opts.keys() and '-g' not in opts.keys():
+                id_only = True
+            else: id_only = False
+            
+            shortest_longest_orf('shortest', opts['-t'], opts['-i'], id_only)
+        
+        # return longest ORF in identifier
+        if '-e' in opts.keys():  
+            
+            if '-r' not in opts.keys() and '-g' not in opts.keys():
+                id_only = True
+            else: id_only = False
+            
+            shortest_longest_orf('longest', opts['-e'], opts['-i'], id_only)
            
            
             
-# START HERE ON RETURN    
 if '-r' in opts.keys():
     shortest_longest_orf('shortest', opts['-r'])
     
