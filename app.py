@@ -120,6 +120,7 @@ def find_open_reading_frames(rf):
     start_codon = 'ATG'
     stop_codons = ('TAA','TAG','TGA')
     
+    
     # initialize lists of locatoins for start codons
     start_codon_locations = []
     stop_codon_locations = []
@@ -127,7 +128,9 @@ def find_open_reading_frames(rf):
     # find them and fill the locations lists
     for i, codon in enumerate(rf):
         if codon == start_codon: start_codon_locations.append(i)
-        if codon in stop_codons: stop_codon_locations.append(i)
+        if codon in stop_codons: 
+            stop_codon_locations.append(i)
+
     
     # create list of ORF locations within this reading frame
     orf_locations = []
@@ -138,8 +141,16 @@ def find_open_reading_frames(rf):
                 orf_loc = [i, j]
                 orf_locations.append(orf_loc)
                 
-   
-                
+    # get rid of the over extended rfs
+    seen = set()
+    drop_overextenders = []
+    for pair in orf_locations:
+        if pair[0] not in seen:
+            drop_overextenders.append(pair)
+            seen.add(pair[0])
+
+    orf_locations = drop_overextenders       
+                        
     return orf_locations
     
 
@@ -162,21 +173,24 @@ def shortest_longest_orf(sl, n, id='', id_only=False):
         orfs = find_open_reading_frames(rf)
         if orfs:
             if sl == 'longest': length = 0 # initialize with 0 if looking for longest
-            else: length = orfs[0][1] - orfs[0][0] + 1 # initialize with first length if looking for shortest
+            else: length = orfs[0][1] - orfs[0][0] + 1 + 2 # initialize with first length if looking for shortest
             for i in orfs:
-                orf_len = i[1] - i[0] + 1 + 2 # +1 to make inclusive and +2 for the 2 nucleotides that follow beginning of stop_codon_location
+                if id == 'gi|142022655|gb|EQ086233.1|527 marine metagenome JCVI_SCAF_1096627390048 genomic scaffold, whole genome shotgun sequenc':
+                    print(i)
+                orf_len = (i[1]*3) - (i[0]*3) + 1 + 2 # +1 to make inclusive and +2 for the 2 nucleotides that follow beginning of stop_codon_location
                 if comparison(orf_len, length):
                     length = orf_len
                     seq_ties = [] # empty ties list if something else was longer/shorter
-                if orf_len == length:
+                elif orf_len == length:
                     seq_ties.append(id)
+                else:
+                    orf_len = length # Update orf_len if it's not greater than (or equal to) length
             if len(seq_ties) <= 1:        
                 # print(f"the {sl} length in {id[:50]} is {orf_len} characters")
                 sl_dict[id] = {'len': orf_len, 'count': 1}
             else: 
                 sl_dict[id] = {'len': orf_len, 'count': len(seq_ties)}
                 # print(f"There was a {len(seq_ties)}-way tie for sequence id {id[:30]} at length {orf_len}")
-    
     # if id was specified, return shortest or longest ORF for that id only, then break
     if id != '':
         if len(id) < 30:
@@ -283,7 +297,7 @@ def usage():
         -S                        get id and length of shortest sequence in entire file
         -o <readingFrameNumber>   prints number of open reading frames in specified sequence identifier for specified reading frame. requires arg 1, 2 or 3 for reading frame number to analyze. also requires -i <identifier>.
         -r <readingFrameNumber>   prints shortest ORF id and length among all sequences in file.
-        -g <readingFrameNumber>   prints longest ORF id and length among all sequencse in file.
+        -g <readingFrameNumber>   prints longest ORF id and length among all sequences in file.
         -t <readingFrameNumber>   prints shortest ORF in specified identifer. requires -i <identifier>
         -e <readingFrameNumber>   prints longest ORF in specified identifier. requires -i <identifier>
         -p <repeatedSubstrLength> prints number of repeats of length <repeatedSubstrLength> in all sequences.
